@@ -14,6 +14,7 @@ namespace Rspeekenbrink\MonologMicrosoftTeams;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Handler\Curl;
 use Monolog\Formatter\FormatterInterface;
+use Monolog\Handler\HandlerInterface;
 use Monolog\Logger;
 
 /**
@@ -26,12 +27,14 @@ class MicrosoftTeamsHandler extends AbstractProcessingHandler
 {
     /**
      * Microsoft Teams Incoming Webhook token
+     *
      * @var string
      */
     private $webhookUrl;
 
     /**
      * Instance of the TeamsRecord util class preparing data for Teams Webhook.
+     *
      * @var MicrosoftTeamsRecord
      */
     private $teamsRecord;
@@ -39,7 +42,6 @@ class MicrosoftTeamsHandler extends AbstractProcessingHandler
     /**
      * @param  string      $webhookUrl             Microsoft Teams Webhook URL
      * @param  string      $title                  Title of the message card
-     * @param  bool        $includeContextAndExtra Whether the attachment should include context and extra data
      * @param  int         $level                  The minimum logging level at which this handler will be triggered
      * @param  bool        $bubble                 Whether the messages that are handled can bubble up the stack or not
      */
@@ -66,11 +68,11 @@ class MicrosoftTeamsHandler extends AbstractProcessingHandler
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @param array $record
+     *
+     * @return void
      */
-    protected function write(array $record)
+    protected function write(array $record): void
     {
         $postData = $this->teamsRecord->getTeamsData($record);
         $postString = json_encode($postData);
@@ -92,17 +94,27 @@ class MicrosoftTeamsHandler extends AbstractProcessingHandler
         Curl\Util::execute($ch);
     }
 
-    public function setFormatter(FormatterInterface $formatter)
+    /**
+     * @param FormatterInterface $formatter
+     *
+     * @return HandlerInterface
+     */
+    public function setFormatter(FormatterInterface $formatter): HandlerInterface
     {
         parent::setFormatter($formatter);
+
         $this->teamsRecord->setFormatter($formatter);
 
         return $this;
     }
 
-    public function getFormatter()
+    /**
+     * @return FormatterInterface
+     */
+    public function getFormatter(): FormatterInterface
     {
         $formatter = parent::getFormatter();
+
         $this->teamsRecord->setFormatter($formatter);
 
         return $formatter;
